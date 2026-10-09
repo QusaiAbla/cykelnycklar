@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#103f74">
+<title>Cykelnycklar – utlåningslista</title>
+<style>
+  :root {
+    --navy: #103f74;
+    --navy-dark: #0a2d53;
+    --blue-pale: #edf4fb;
+    --line: #d9e2ec;
+    --ink: #1c2733;
+    --muted: #64748b;
+    --green: #18794e;
+    --red: #b42318;
+    --white: #fff;
+    --shadow: 0 8px 24px rgba(16, 63, 116, .08);
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: #f5f8fc;
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.4;
+  }
+  button, input { font: inherit; }
+  button { touch-action: manipulation; }
+  .app { width: min(1100px, 100%); margin: 0 auto; padding: 20px 18px 36px; }
+  header { display:flex; align-items:flex-start; justify-content:space-between; gap: 16px; margin-bottom: 20px; }
+  .brand { display:flex; gap: 13px; align-items:center; min-width: 0; }
+  .logo { width:48px; height:48px; display:grid; place-items:center; border-radius:14px; background:var(--navy); color:#fff; flex:0 0 auto; }
+  .logo svg { width:27px; height:27px; }
+  h1 { margin:0; color:var(--navy-dark); font-size:clamp(1.35rem, 4vw, 1.85rem); line-height:1.15; letter-spacing:-.025em; }
+  .subtitle { color:var(--muted); margin:5px 0 0; font-size:.94rem; }
+  .top-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; align-items:flex-start; gap:9px; }
+  .admin-panel { display:flex; flex-wrap:wrap; align-items:center; gap:7px; }
+  .admin-panel[hidden] { display:none !important; }
+  .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+  .admin-panel input { width:145px; min-width:0; min-height:44px; padding:9px 11px; border:1px solid #b8c9dc; border-radius:10px; background:#fff; color:var(--ink); }
+  [hidden] { display:none !important; }
+  .btn { border:1px solid transparent; border-radius:10px; min-height:44px; padding:10px 14px; font-weight:650; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:8px; transition:background .15s, transform .05s; }
+  .btn:active { transform:translateY(1px); }
+  .btn:focus-visible, input:focus-visible, .check-label:focus-within { outline:3px solid #8dbcf0; outline-offset:2px; }
+  .btn-primary { color:white; background:var(--navy); }
+  .btn-primary:hover { background:var(--navy-dark); }
+  .btn-secondary { color:var(--navy); background:white; border-color:#b8c9dc; }
+  .btn-secondary:hover { background:var(--blue-pale); }
+  .btn-danger { color:var(--red); background:white; border-color:#f0b9b5; }
+  .btn-danger:hover { background:#fff5f4; }
+  .btn svg { width:18px; height:18px; flex:0 0 auto; }
+  .summary { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 0 16px; padding:13px 16px; background:white; border:1px solid var(--line); border-radius:13px; box-shadow:var(--shadow); }
+  .summary-main { font-weight:650; color:var(--navy-dark); }
+  .summary-detail { color:var(--muted); font-size:.9rem; text-align:right; }
+  .columns { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:16px; align-items:start; }
+  .bike-card { overflow:hidden; background:white; border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); min-width:0; }
+  .bike-heading { padding:16px 17px; background:var(--navy); color:white; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .bike-title-wrap { display:flex; gap:10px; align-items:center; min-width:0; }
+  .bike-dot { width:19px; height:19px; border:2px solid white; border-radius:50%; flex:0 0 auto; }
+  .bike-dot.black { background:#191919; box-shadow:inset 0 0 0 2px #555; }
+  .bike-dot.blue { background:#2d83df; }
+  h2 { margin:0; font-size:1.15rem; letter-spacing:-.01em; }
+  .count { border-radius:999px; padding:4px 9px; background:rgba(255,255,255,.16); font-size:.84rem; white-space:nowrap; }
+  .entry-form { padding:16px; background:#f9fbfe; border-bottom:1px solid var(--line); }
+  .form-grid { display:grid; grid-template-columns:minmax(0, .92fr) minmax(0, 1.35fr); gap:10px; }
+  .field { min-width:0; }
+  .field label { display:block; margin:0 0 6px; color:#344256; font-weight:650; font-size:.86rem; }
+  .field input { width:100%; min-width:0; min-height:46px; padding:10px 11px; border:1px solid #c6d2e0; border-radius:9px; color:var(--ink); background:white; }
+  .field input::placeholder { color:#91a0b2; }
+  .add-btn { width:100%; margin-top:12px; }
+  .entries { padding:0 14px 8px; }
+  .entries-header { display:grid; grid-template-columns:minmax(0, .9fr) minmax(0, 1.2fr) 76px 30px; gap:8px; padding:13px 2px 9px; color:var(--muted); font-size:.75rem; font-weight:750; text-transform:uppercase; letter-spacing:.045em; }
+  .entry { display:grid; grid-template-columns:minmax(0, .9fr) minmax(0, 1.2fr) 76px 30px; gap:8px; align-items:center; padding:12px 2px; border-top:1px solid #e7edf4; }
+  .entry-date { font-size:.9rem; color:#344256; overflow-wrap:anywhere; }
+  .entry-name { min-width:0; font-weight:650; overflow-wrap:anywhere; }
+  .entry.returned .entry-name { color:var(--muted); text-decoration:line-through; }
+  .check-label { display:flex; flex-direction:column; align-items:center; gap:4px; color:var(--muted); font-size:.72rem; cursor:pointer; }
+  .check-label input { width:23px; height:23px; accent-color:var(--green); cursor:pointer; margin:0; }
+  .remove-btn { width:30px; height:34px; display:grid; place-items:center; border:0; border-radius:7px; background:transparent; color:#8190a2; cursor:pointer; }
+  .remove-btn:hover { background:#fff1f0; color:var(--red); }
+  .remove-btn svg { width:17px; height:17px; }
+  .empty { margin:0; padding:22px 8px 26px; text-align:center; color:var(--muted); font-size:.92rem; }
+  .entry.returned .entry-date { color:#8995a5; }
+  footer { margin-top:17px; color:var(--muted); font-size:.83rem; text-align:center; }
+  .toast { position:fixed; left:50%; bottom:22px; transform:translateX(-50%); z-index:10; padding:12px 16px; border-radius:11px; background:#122f4f; color:#fff; box-shadow:0 8px 26px rgba(0,0,0,.18); max-width:calc(100% - 28px); text-align:center; }
+  .toast[hidden] { display:none; }
+  @media (max-width: 600px) {
+    .app { padding:14px 11px 28px; }
+    header { flex-direction:column; }
+    .top-actions { width:100%; justify-content:stretch; }
+    .top-actions .btn { flex:1; }
+    .columns { gap:10px; }
+    .bike-heading { padding:12px 10px; align-items:flex-start; flex-direction:column; gap:8px; }
+    .bike-title-wrap { gap:7px; }
+    h2 { font-size:1rem; }
+    .bike-dot { width:15px; height:15px; }
+    .count { font-size:.75rem; padding:3px 7px; }
+    .entry-form { padding:11px 9px; }
+    .form-grid { grid-template-columns:1fr; gap:8px; }
+    .field label { font-size:.8rem; }
+    .field input { min-height:42px; padding:8px; font-size:.92rem; }
+    .add-btn { min-height:42px; padding:8px 5px; font-size:.88rem; }
+    .entries { padding:0 8px 5px; }
+    .entries-header { grid-template-columns:minmax(0, .86fr) minmax(0, 1.1fr) 42px 23px; gap:4px; font-size:.62rem; padding-top:11px; }
+    .entry { grid-template-columns:minmax(0, .86fr) minmax(0, 1.1fr) 42px 23px; gap:4px; padding:11px 0; }
+    .entry-date, .entry-name { font-size:.79rem; }
+    .check-label { font-size:.62rem; }
+    .check-label input { width:21px; height:21px; }
+    .remove-btn { width:23px; }
+    .summary { align-items:flex-start; flex-direction:column; gap:4px; }
+    .summary-detail { text-align:left; }
+  }
+  @media print {
+    body { background:white; }
+    .app { width:100%; padding:0; }
+    .top-actions, .entry-form, .remove-btn, footer { display:none !important; }
+    .bike-card, .summary { box-shadow:none; break-inside:avoid; }
+    .columns { gap:10px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="17" r="4"></circle><circle cx="18" cy="17" r="4"></circle><path d="M6 17l4.5-8h4l3.5 8M9 12h6M10 6h3"></path></svg>
+      </div>
+      <div>
+        <h1>Cykelnycklar</h1>
+        <p class="subtitle">Utlåning och återlämning</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="btn btn-secondary" id="adminBtn" type="button" aria-expanded="false" aria-controls="adminLoginForm">Admin</button>
+      <form class="admin-panel" id="adminLoginForm" hidden>
+        <label class="sr-only" for="adminPassword">Adminlösenord</label>
+        <input id="adminPassword" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Lösenord" aria-label="Adminlösenord" required>
+        <button class="btn btn-primary" type="submit">Logga in</button>
+      </form>
+      <button class="btn btn-secondary" id="exportBtn" type="button" title="Ladda ner listan som CSV-fil" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5"></path><path d="M5 16v4h14v-4"></path></svg>
+        Ladda ner lista
+      </button>
+      <button class="btn btn-danger" id="newListBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m-11 0 1 14h12l1-14M10 10v6m4-6v6"></path></svg>
+        Ny lista
+      </button>
+    </div>
+  </header>
+
+  <section class="summary" aria-live="polite">
+    <div class="summary-main" id="summaryMain">0 aktiva utlåningar</div>
+    <div class="summary-detail" id="summaryDetail">Alla nycklar är återlämnade.</div>
+  </section>
+
+  <main class="columns" aria-label="Utlåningslistor">
+    <section class="bike-card" aria-labelledby="blackTitle">
+      <div class="bike-heading">
+        <div class="bike-title-wrap"><span class="bike-dot black" aria-hidden="true"></span><h2 id="blackTitle">Svart cykel</h2></div>
+        <span class="count" id="blackCount">0 utlåningar</span>
+      </div>
+      <form class="entry-form" id="blackForm" data-bike="black">
+        <div class="form-grid">
+          <div class="field"><label for="blackDate">Datum</label><input id="blackDate" name="date" type="date" required></div>
+          <div class="field"><label for="blackName">Namn</label><input id="blackName" name="name" type="text" maxlength="100" placeholder="Skriv namn" autocomplete="off" required></div>
+        </div>
+        <button class="btn btn-primary add-btn" type="submit"><span aria-hidden="true">＋</span> Lägg till utlåning</button>
+      </form>
+      <div class="entries-header" aria-hidden="true"><span>Datum</span><span>Namn</span><span style="text-align:center">Återlämnad</span><span></span></div>
+      <div class="entries" id="blackEntries"></div>
+    </section>
+
+    <section class="bike-card" aria-labelledby="blueTitle">
+      <div class="bike-heading">
+        <div class="bike-title-wrap"><span class="bike-dot blue" aria-hidden="true"></span><h2 id="blueTitle">Blå cykel</h2></div>
+        <span class="count" id="blueCount">0 utlåningar</span>
+      </div>
+      <form class="entry-form" id="blueForm" data-bike="blue">
+        <div class="form-grid">
+          <div class="field"><label for="blueDate">Datum</label><input id="blueDate" name="date" type="date" required></div>
+          <div class="field"><label for="blueName">Namn</label><input id="blueName" name="name" type="text" maxlength="100" placeholder="Skriv namn" autocomplete="off" required></div>
+        </div>
+        <button class="btn btn-primary add-btn" type="submit"><span aria-hidden="true">＋</span> Lägg till utlåning</button>
+      </form>
+      <div class="entries-header" aria-hidden="true"><span>Datum</span><span>Namn</span><span style="text-align:center">Återlämnad</span><span></span></div>
+      <div class="entries" id="blueEntries"></div>
+    </section>
+  </main>
+  <footer>Listan sparas automatiskt i den här webbläsaren på enheten.</footer>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<script>
+(() => {
+  'use strict';
+  const STORAGE_KEY = 'cykelnycklar-utlaningslista-v1';
+  const bikes = {
+    black: { label: 'Svart cykel', form: 'blackForm', date: 'blackDate', name: 'blackName', list: 'blackEntries', count: 'blackCount' },
+    blue: { label: 'Blå cykel', form: 'blueForm', date: 'blueDate', name: 'blueName', list: 'blueEntries', count: 'blueCount' }
+  };
+  let data = { black: [], blue: [] };
+  let toastTimer;
+  let isAdmin = false;
+  const today = () => {
+    const now = new Date();
+    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+    return local.toISOString().slice(0, 10);
+  };
+  const escapeHtml = (value) => String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  function load() {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        data.black = Array.isArray(parsed.black) ? parsed.black : [];
+        data.blue = Array.isArray(parsed.blue) ? parsed.blue : [];
+      }
+    } catch (e) {
+      showToast('Kunde inte läsa den sparade listan i webbläsaren.');
+    }
+  }
+  function save() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+    catch (e) { showToast('Listan kunde inte sparas. Kontrollera webbläsarens lagringsutrymme.'); }
+  }
+  function showToast(message) {
+    const el = document.getElementById('toast');
+    el.textContent = message;
+    el.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.hidden = true; }, 2800);
+  }
+  function formatDate(value) {
+    if (!value) return '';
+    const parts = value.split('-');
+    return parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : value;
+  }
+  function renderBike(key) {
+    const cfg = bikes[key];
+    const entries = data[key];
+    document.getElementById(cfg.count).textContent = `${entries.length} ${entries.length === 1 ? 'utlåning' : 'utlåningar'}`;
+    const host = document.getElementById(cfg.list);
+    if (!entries.length) {
+      host.innerHTML = '<p class="empty">Ingen utlåning registrerad ännu.</p>';
+      return;
+    }
+    host.innerHTML = entries.map(item => `
+      <div class="entry ${item.returned ? 'returned' : ''}" data-id="${escapeHtml(item.id)}">
+        <span class="entry-date">${escapeHtml(formatDate(item.date))}</span>
+        <span class="entry-name">${escapeHtml(item.name)}</span>
+        <label class="check-label" title="Markera om nyckeln har lämnats tillbaka">
+          <input type="checkbox" data-action="returned" data-bike="${key}" data-id="${escapeHtml(item.id)}" ${item.returned ? 'checked' : ''} aria-label="Återlämnad för ${escapeHtml(item.name)}">
+          <span>${item.returned ? 'Ja' : 'Nej'}</span>
+        </label>
+        <button class="remove-btn" type="button" data-action="remove" data-bike="${key}" data-id="${escapeHtml(item.id)}" aria-label="Ta bort utlåning för ${escapeHtml(item.name)}" title="Ta bort rad">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m-11 0 1 14h12l1-14"></path></svg>
+        </button>
+      </div>`).join('');
+  }
+  function renderSummary() {
+    const all = [...data.black, ...data.blue];
+    const active = all.filter(item => !item.returned).length;
+    const returned = all.length - active;
+    document.getElementById('summaryMain').textContent = `${active} aktiva ${active === 1 ? 'utlåning' : 'utlåningar'}`;
+    document.getElementById('summaryDetail').textContent = all.length === 0 ? 'Inga utlåningar registrerade ännu.' : `${returned} av ${all.length} nycklar återlämnade`;
+  }
+  function render() { renderBike('black'); renderBike('blue'); renderSummary(); }
+  Object.entries(bikes).forEach(([key, cfg]) => {
+    document.getElementById(cfg.date).value = today();
+    document.getElementById(cfg.form).addEventListener('submit', event => {
+      event.preventDefault();
+      const date = document.getElementById(cfg.date).value;
+      const nameField = document.getElementById(cfg.name);
+      const name = nameField.value.trim();
+      if (!date || !name) { showToast('Fyll i både datum och namn.'); return; }
+      data[key].unshift({ id: (globalThis.crypto && globalThis.crypto.randomUUID) ? globalThis.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`, date, name, returned: false });
+      save(); render();
+      nameField.value = '';
+      nameField.focus();
+      showToast(`Utlåningen har lagts till på ${cfg.label.toLowerCase()}.`);
+    });
+  });
+  document.addEventListener('change', event => {
+    const target = event.target;
+    if (!(target instanceof HTMLInputElement) || target.dataset.action !== 'returned') return;
+    const list = data[target.dataset.bike];
+    const item = list && list.find(row => row.id === target.dataset.id);
+    if (!item) return;
+    item.returned = target.checked;
+    save(); render();
+    showToast(item.returned ? 'Nyckeln markerades som återlämnad.' : 'Nyckeln markerades som ej återlämnad.');
+  });
+  document.addEventListener('click', event => {
+    const button = event.target.closest('button[data-action="remove"]');
+    if (!button) return;
+    const list = data[button.dataset.bike];
+    const item = list && list.find(row => row.id === button.dataset.id);
+    if (!item) return;
+    if (!confirm(`Ta bort utlåningen för ${item.name}?`)) return;
+    data[button.dataset.bike] = list.filter(row => row.id !== item.id);
+    save(); render(); showToast('Utlåningen har tagits bort.');
+  });
+  const adminBtn = document.getElementById('adminBtn');
+  const adminForm = document.getElementById('adminLoginForm');
+  const adminPassword = document.getElementById('adminPassword');
+  const exportBtn = document.getElementById('exportBtn');
+
+  adminBtn.addEventListener('click', () => {
+    adminForm.hidden = !adminForm.hidden;
+    adminBtn.setAttribute('aria-expanded', String(!adminForm.hidden));
+    if (!adminForm.hidden) adminPassword.focus();
+  });
+
+  adminForm.addEventListener('submit', event => {
+    event.preventDefault();
+    if (adminPassword.value !== '989898') {
+      adminPassword.value = '';
+      adminPassword.focus();
+      showToast('Fel lösenord. Försök igen.');
+      return;
+    }
+    isAdmin = true;
+    adminPassword.value = '';
+    adminForm.hidden = true;
+    adminBtn.hidden = true;
+    exportBtn.hidden = false;
+    adminBtn.setAttribute('aria-expanded', 'false');
+    showToast('Admininloggningen lyckades.');
+  });
+
+  document.getElementById('newListBtn').addEventListener('click', () => {
+    const total = data.black.length + data.blue.length;
+    const message = total ? 'Vill du verkligen skapa en ny lista? Alla registrerade utlåningar och markeringar tas bort från den här enheten.' : 'Vill du skapa en ny tom lista?';
+    if (!confirm(message)) return;
+    data = { black: [], blue: [] };
+    save(); render();
+    document.getElementById('blackDate').value = today();
+    document.getElementById('blueDate').value = today();
+    showToast('En ny tom lista har skapats.');
+  });
+  function csvCell(value) { return `"${String(value ?? '').replace(/"/g, '""')}"`; }
+  exportBtn.addEventListener('click', () => {
+    if (!isAdmin) { showToast('Logga in som admin för att ladda ner listan.'); return; }
+    const rows = [['Cykel', 'Datum', 'Namn', 'Återlämnad']];
+    ['black', 'blue'].forEach(key => data[key].slice().reverse().forEach(item => {
+      rows.push([bikes[key].label, item.date, item.name, item.returned ? 'Ja' : 'Nej']);
+    }));
+    if (rows.length === 1) { showToast('Listan är tom. Lägg till en utlåning före nedladdning.'); return; }
+    const csv = '\uFEFFsep=;\r\n' + rows.map(row => row.map(csvCell).join(';')).join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `cykelnycklar-${today()}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    // Webbläsaren ger inte sidan en säker signal när filen är färdigskriven.
+    // CSV-filen är redan skapad fristående, så listan rensas strax efter att nedladdningen startats.
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+      data = { black: [], blue: [] };
+      save();
+      render();
+      document.getElementById('blackDate').value = today();
+      document.getElementById('blueDate').value = today();
+      isAdmin = false;
+      exportBtn.hidden = true;
+      adminBtn.hidden = false;
+      adminForm.hidden = true;
+      adminBtn.setAttribute('aria-expanded', 'false');
+      showToast('Listan har laddats ner och rensats inför nästa utlåningsdag.');
+    }, 1500);
+  });
+  load(); render();
+})();
+</script>
+</body>
+</html>
